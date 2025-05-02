@@ -2,48 +2,47 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CircleCheckBig, LifeBuoy, MessageSquare, Users } from 'lucide-react'; // Corrected icon import
+import { CircleCheckBig, LifeBuoy, MessageSquare, Users } from 'lucide-react';
 import Image from 'next/image';
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header - Now transparent and absolutely positioned */}
-      <header className="absolute top-0 left-0 right-0 z-50">
-        <div className="container flex h-14 items-center justify-end">
+      {/* Header - Fixed position for buttons */}
+      <header className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6">
+        {/* Container removed to allow fixed positioning */}
+        {/* <div className="container flex h-14 items-center justify-end"> */}
           {/* Logo removed from here */}
-          <nav className="flex flex-1 items-center space-x-4">
+          {/* <nav className="flex flex-1 items-center space-x-4"> */}
             {/* Add future nav items here if needed */}
-          </nav>
-          <div className="flex items-center space-x-2">
-            <Button asChild variant="outline" className="bg-background/80 hover:bg-background">
+          {/* </nav> */}
+          {/* Buttons positioned top-right */}
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center space-x-2">
+            <Button asChild variant="outline" className="bg-background/80 hover:bg-background backdrop-blur-sm">
               <Link href="/employee">Employee Login</Link>
             </Button>
-            <Button asChild className="bg-primary/90 hover:bg-primary">
+            <Button asChild className="bg-primary/90 hover:bg-primary backdrop-blur-sm">
               <Link href="/submit-ticket">Submit Ticket</Link>
             </Button>
           </div>
-        </div>
+        {/* </div> */}
       </header>
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative py-32 md:py-48 min-h-[60vh] flex items-center justify-center text-center overflow-hidden"> {/* Increased padding, added min-height, flex centering */}
-          {/* Background Image */}
+        <section className="relative py-32 md:py-48 min-h-[60vh] flex items-center justify-center text-center overflow-hidden">
           <Image
-            src="https://picsum.photos/1600/900" // Larger image for background
+            src="https://picsum.photos/1600/900"
             alt="Helpdesk background"
-            layout="fill" // Changed to fill
-            objectFit="cover" // Changed to cover
-            className="absolute inset-0 -z-10" // Positioned as background
+            layout="fill"
+            objectFit="cover"
+            className="absolute inset-0 -z-10"
             data-ai-hint="customer support team office abstract background"
             priority
           />
-          {/* Optional overlay for better text readability */}
           <div className="absolute inset-0 bg-black/30 -z-10" aria-hidden="true" />
 
-          <div className="container relative z-10 text-white"> {/* Changed text color to white for contrast */}
-            {/* Logo Box - Centered on Image */}
+          <div className="container relative z-10 text-white px-4"> {/* Added px-4 for padding on small screens */}
             <div className="inline-block bg-background/80 p-6 rounded-lg shadow-xl mx-auto mb-10 backdrop-blur-sm">
               <Link href="/" className="flex items-center space-x-3">
                 <LifeBuoy className="h-10 w-10 text-primary" />
@@ -51,15 +50,13 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Hero Text - Adjusted margins, removed drop-shadow */}
             <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
               Need Help? We've Got You Covered.
             </h1>
             <p className="mt-6 text-lg text-gray-200 max-w-2xl mx-auto">
               Welcome to HelpDesk HQ, your central hub for reporting issues and getting support quickly and efficiently.
             </p>
-            <div className="mt-10 flex justify-center space-x-4">
-               {/* Buttons - Maybe adjust variants/colors if needed against image */}
+            <div className="mt-10 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4"> {/* Adjusted for better stacking on small screens */}
               <Button size="lg" asChild>
                 <Link href="/submit-ticket">Submit a Ticket Now</Link>
               </Button>
@@ -72,12 +69,11 @@ export default function LandingPage() {
 
         {/* Features Section */}
         <section id="features" className="py-16 md:py-24 bg-background">
-          <div className="container"> {/* Container handles centering */}
+          <div className="container mx-auto px-4"> {/* Ensure container has mx-auto and padding */}
             <h2 className="text-3xl font-bold text-center mb-12">
               Why Choose HelpDesk HQ?
             </h2>
-             {/* Grid itself will fill the centered container */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"> {/* Centered the grid content */}
               <Card className="text-center shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
                   <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit mb-4">
@@ -94,7 +90,6 @@ export default function LandingPage() {
               <Card className="text-center shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
                    <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit mb-4">
-                    {/* Use CircleCheckBig or another valid Check icon */}
                     <CircleCheckBig className="h-8 w-8 text-primary" />
                   </div>
                   <CardTitle>Track Your Progress</CardTitle>
@@ -124,7 +119,7 @@ export default function LandingPage() {
 
         {/* Call to Action Section */}
         <section className="py-16 md:py-24 bg-secondary">
-          <div className="container text-center">
+          <div className="container mx-auto px-4 text-center"> {/* Ensure container has mx-auto and padding */}
             <h2 className="text-3xl font-bold mb-4">
               Ready to Get Started?
             </h2>
@@ -139,9 +134,10 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 md:px-8 md:py-8 border-t bg-background">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-          <p className="text-sm text-muted-foreground">
+      <footer className="py-6 md:py-8 border-t bg-background">
+         {/* Removed md:px-8 to rely solely on container for centering */}
+        <div className="container mx-auto px-4 flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row"> {/* Ensure container has mx-auto and padding */}
+          <p className="text-sm text-muted-foreground text-center md:text-left"> {/* Center text on small screens */}
             © {new Date().getFullYear()} HelpDesk HQ. All rights reserved.
           </p>
            <div className="flex items-center gap-4">
