@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, LifeBuoy, MessageSquare, Users, CircleCheckBig } from 'lucide-react'; // Corrected icon import
+import { CircleCheckBig, LifeBuoy, MessageSquare, Users } from 'lucide-react'; // Corrected icon import
 import Image from 'next/image';
 
 export default function LandingPage() {
@@ -51,11 +51,11 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Hero Text - Adjusted margins */}
-            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl drop-shadow-md">
+            {/* Hero Text - Adjusted margins, removed drop-shadow */}
+            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
               Need Help? We've Got You Covered.
             </h1>
-            <p className="mt-6 text-lg text-gray-200 max-w-2xl mx-auto drop-shadow-sm">
+            <p className="mt-6 text-lg text-gray-200 max-w-2xl mx-auto">
               Welcome to HelpDesk HQ, your central hub for reporting issues and getting support quickly and efficiently.
             </p>
             <div className="mt-10 flex justify-center space-x-4">
@@ -72,10 +72,11 @@ export default function LandingPage() {
 
         {/* Features Section */}
         <section id="features" className="py-16 md:py-24 bg-background">
-          <div className="container">
+          <div className="container"> {/* Container handles centering */}
             <h2 className="text-3xl font-bold text-center mb-12">
               Why Choose HelpDesk HQ?
             </h2>
+             {/* Grid itself will fill the centered container */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className="text-center shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
