@@ -27,8 +27,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { ArrowLeft, LifeBuoy } from 'lucide-react';
+import { submitTicketAction, type TicketFormState } from './actions'; // Import the server action and state type
+import { useFormState } from 'react-dom'; // Import useFormState
 
-// Define the form schema using Zod
+// Define the form schema using Zod (ensure this matches the action's schema)
 const ticketFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -42,7 +44,7 @@ const ticketFormSchema = z.object({
   description: z.string().min(10, {
     message: 'Description must be at least 10 characters.',
   }).max(500, {message: 'Description cannot exceed 500 characters.'}),
-  // file: z.instanceof(File).optional(), // File upload handling would require server action/API
+  file: z.any().optional(), // Keep for potential future use, but not sent to action
 });
 
 type TicketFormValues = z.infer<typeof ticketFormSchema>;
@@ -53,34 +55,56 @@ const defaultValues: Partial<TicketFormValues> = {
   email: '',
   subject: '',
   description: '',
+  category: undefined, // Ensure select placeholders work
+  urgency: undefined,
 };
+
+const initialState: TicketFormState = {
+    message: '',
+    success: false,
+    errors: {},
+}
 
 export default function TicketSubmissionPage() {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [formState, formAction] = useFormState(submitTicketAction, initialState);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketFormSchema),
     defaultValues,
-    mode: 'onChange',
+    mode: 'onChange', // Validate on change for better UX
   });
 
-  async function onSubmit(data: TicketFormValues) {
-    setIsSubmitting(true);
-    console.log(data); // Log data for now, replace with actual submission logic
+ React.useEffect(() => {
+    if (formState?.success) {
+      toast({
+        title: 'Success!',
+        description: formState.message,
+        variant: 'default',
+      });
+      form.reset(); // Reset form on successful submission
+    } else if (formState && formState.message && !formState.success) {
+      // Display server-side validation errors or general submission errors
+       toast({
+        title: 'Submission Error',
+        description: formState.message,
+        variant: 'destructive', // Use destructive style for errors
+      });
+       // Optionally set form errors from server state if needed for specific fields
+       if (formState.errors) {
+            Object.entries(formState.errors).forEach(([key, value]) => {
+                if (value && value.length > 0) {
+                   form.setError(key as keyof TicketFormValues, {
+                       type: 'server',
+                       message: value[0], // Show the first error message
+                   });
+                }
+            });
+       }
+    }
+  }, [formState, toast, form]);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-
-    toast({
-      title: 'Ticket Submitted!',
-      description: 'Your request has been received. We will get back to you shortly.',
-      variant: 'default', // Use default style
-    });
-    form.reset(); // Reset form after successful submission
-  }
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary">
@@ -107,7 +131,12 @@ export default function TicketSubmissionPage() {
            </CardHeader>
            <CardContent>
              <Form {...form}>
-               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+               <form
+                  ref={formRef}
+                  action={formAction} // Use the server action
+                  className="space-y-6"
+                  // We don't need onSubmit handler anymore when using useFormState
+               >
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -144,7 +173,7 @@ export default function TicketSubmissionPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -167,7 +196,7 @@ export default function TicketSubmissionPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Urgency</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select urgency level" />
@@ -221,22 +250,25 @@ export default function TicketSubmissionPage() {
                    )}
                  />
 
-                  {/* Basic File Input - Styling might need adjustment */}
+                  {/* Basic File Input - Kept for UI, but not processed by action yet */}
                  <FormField
-                    name="file" // Assuming you add 'file' to your schema if needed
-                    render={({ field }) => (
+                    control={form.control} // Need control for React Hook Form
+                    name="file"
+                    render={({ field: { onChange, onBlur, name, ref } }) => ( // Destructure correctly for file input
                       <FormItem>
                         <FormLabel>Attach File (Optional)</FormLabel>
                         <FormControl>
-                           {/* Basic file input. For better UX, consider a dedicated file upload component */}
                           <Input
                              type="file"
-                             onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)}
-                             className="pt-1.5" // Adjust padding for file input
+                             ref={ref} // Pass the ref
+                             name={name} // Pass the name
+                             onBlur={onBlur} // Pass onBlur
+                             onChange={(e) => onChange(e.target.files ? e.target.files[0] : null)} // Use onChange from RHF field
+                             className="pt-1.5"
                            />
                         </FormControl>
                         <FormDescription>
-                          You can attach relevant screenshots or documents.
+                          File upload not yet implemented on the server.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -244,19 +276,7 @@ export default function TicketSubmissionPage() {
                   />
 
 
-                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                   {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Submitting...
-                    </>
-                   ) : (
-                     'Submit Ticket'
-                   )}
-                 </Button>
+                 <SubmitButton />
                </form>
              </Form>
            </CardContent>
@@ -273,4 +293,25 @@ export default function TicketSubmissionPage() {
       </footer>
     </div>
   );
+}
+
+// Extracted SubmitButton to use useFormStatus
+function SubmitButton() {
+    const { pending } = useFormState(); // Get pending state directly
+
+    return (
+        <Button type="submit" className="w-full" disabled={pending}>
+            {pending ? (
+                <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                </>
+            ) : (
+                'Submit Ticket'
+            )}
+        </Button>
+    );
 }
