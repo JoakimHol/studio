@@ -1,27 +1,25 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, LifeBuoy, MessageSquare, Users } from 'lucide-react';
+import { CheckCircle, LifeBuoy, MessageSquare, Users, CircleCheckBig } from 'lucide-react'; // Corrected icon import
 import Image from 'next/image';
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <LifeBuoy className="h-6 w-6 text-primary" />
-            <span className="font-bold">HelpDesk HQ</span>
-          </Link>
+      {/* Header - Now transparent and absolutely positioned */}
+      <header className="absolute top-0 left-0 right-0 z-50">
+        <div className="container flex h-14 items-center justify-end">
+          {/* Logo removed from here */}
           <nav className="flex flex-1 items-center space-x-4">
             {/* Add future nav items here if needed */}
           </nav>
           <div className="flex items-center space-x-2">
-             <Button asChild variant="outline">
+            <Button asChild variant="outline" className="bg-background/80 hover:bg-background">
               <Link href="/employee">Employee Login</Link>
             </Button>
-            <Button asChild>
+            <Button asChild className="bg-primary/90 hover:bg-primary">
               <Link href="/submit-ticket">Submit Ticket</Link>
             </Button>
           </div>
@@ -30,32 +28,42 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-32 bg-secondary">
-          <div
-            className="absolute inset-0 bg-gradient-to-b from-secondary to-background opacity-50"
-            aria-hidden="true"
+        <section className="relative py-32 md:py-48 min-h-[60vh] flex items-center justify-center text-center overflow-hidden"> {/* Increased padding, added min-height, flex centering */}
+          {/* Background Image */}
+          <Image
+            src="https://picsum.photos/1600/900" // Larger image for background
+            alt="Helpdesk background"
+            layout="fill" // Changed to fill
+            objectFit="cover" // Changed to cover
+            className="absolute inset-0 -z-10" // Positioned as background
+            data-ai-hint="customer support team office abstract background"
+            priority
           />
-          <div className="container relative z-10 text-center">
-             <Image
-              src="https://picsum.photos/1200/400"
-              alt="Helpdesk team working"
-              width={1200}
-              height={400}
-              className="mx-auto mb-8 rounded-lg shadow-lg object-cover"
-              data-ai-hint="customer support team office"
-              priority
-            />
-            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+          {/* Optional overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/30 -z-10" aria-hidden="true" />
+
+          <div className="container relative z-10 text-white"> {/* Changed text color to white for contrast */}
+            {/* Logo Box - Centered on Image */}
+            <div className="inline-block bg-background/80 p-6 rounded-lg shadow-xl mx-auto mb-10 backdrop-blur-sm">
+              <Link href="/" className="flex items-center space-x-3">
+                <LifeBuoy className="h-10 w-10 text-primary" />
+                <span className="text-2xl font-bold text-foreground">HelpDesk HQ</span>
+              </Link>
+            </div>
+
+            {/* Hero Text - Adjusted margins */}
+            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl drop-shadow-md">
               Need Help? We've Got You Covered.
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="mt-6 text-lg text-gray-200 max-w-2xl mx-auto drop-shadow-sm">
               Welcome to HelpDesk HQ, your central hub for reporting issues and getting support quickly and efficiently.
             </p>
-            <div className="mt-8 flex justify-center space-x-4">
+            <div className="mt-10 flex justify-center space-x-4">
+               {/* Buttons - Maybe adjust variants/colors if needed against image */}
               <Button size="lg" asChild>
                 <Link href="/submit-ticket">Submit a Ticket Now</Link>
               </Button>
-               <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20 backdrop-blur-sm" asChild>
                 <Link href="#features">Learn More</Link>
               </Button>
             </div>
@@ -85,7 +93,8 @@ export default function LandingPage() {
               <Card className="text-center shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
                    <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit mb-4">
-                    <CheckCircle className="h-8 w-8 text-primary" />
+                    {/* Use CircleCheckBig or another valid Check icon */}
+                    <CircleCheckBig className="h-8 w-8 text-primary" />
                   </div>
                   <CardTitle>Track Your Progress</CardTitle>
                 </CardHeader>

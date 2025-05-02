@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -16,7 +17,13 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+       // Ensure picsum.photos is allowed if not already covered by wildcard
+       {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
+     domains: ['picsum.photos'], // Added for broader compatibility if needed
   },
 };
 
