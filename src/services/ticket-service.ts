@@ -109,4 +109,3 @@ export async function getAllTickets(): Promise<Ticket[]> {
 // export async function getTicketById(id: number): Promise<Ticket | null> { ... }
 // export async function updateTicketStatus(id: number, status: string): Promise<boolean> { ... }
 // export async function getTicketsByUserId(userId: number): Promise<Ticket[]> { ... }
-```
