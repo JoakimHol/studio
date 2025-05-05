@@ -10,22 +10,16 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       {/* Header - Fixed position for buttons */}
       <header className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6">
-        {/* Container removed to allow fixed positioning */}
-        {/* <div className="container flex h-14 items-center justify-end"> */}
-          {/* Logo removed from here */}
-          {/* <nav className="flex flex-1 items-center space-x-4"> */}
-            {/* Add future nav items here if needed */}
-          {/* </nav> */}
           {/* Buttons positioned top-right */}
           <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center space-x-2">
             <Button asChild variant="outline" className="bg-background/80 hover:bg-background backdrop-blur-sm">
-              <Link href="/employee">Employee Login</Link>
+              {/* Changed link to /login */}
+              <Link href="/login">Login</Link>
             </Button>
             <Button asChild className="bg-primary/90 hover:bg-primary backdrop-blur-sm">
               <Link href="/submit-ticket">Submit Ticket</Link>
             </Button>
           </div>
-        {/* </div> */}
       </header>
 
       <main className="flex-1">
@@ -43,14 +37,18 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-black/30 -z-10" aria-hidden="true" />
 
           <div className="container relative z-10 text-white px-4"> {/* Added px-4 for padding on small screens */}
-            <div className="inline-block bg-background/80 p-6 rounded-lg shadow-xl mx-auto mb-10 backdrop-blur-sm">
-              <Link href="/" className="flex items-center space-x-3">
-                <LifeBuoy className="h-10 w-10 text-primary" />
-                <span className="text-2xl font-bold text-foreground">HelpDesk HQ</span>
-              </Link>
+            {/* Centered Logo Box */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-[-16rem] md:mt-[-18rem]"> {/* Adjust vertical offset as needed */}
+              <div className="inline-block bg-background/80 p-6 rounded-lg shadow-xl mx-auto backdrop-blur-sm">
+                <Link href="/" className="flex items-center space-x-3">
+                  <LifeBuoy className="h-10 w-10 text-primary" />
+                  <span className="text-2xl font-bold text-foreground">HelpDesk HQ</span>
+                </Link>
+              </div>
             </div>
 
-            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+
+            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mt-24 md:mt-16"> {/* Adjusted margin top */}
               Need Help? We've Got You Covered.
             </h1>
             <p className="mt-6 text-lg text-gray-200 max-w-2xl mx-auto">
@@ -135,7 +133,6 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-6 md:py-8 border-t bg-background">
-         {/* Removed md:px-8 to rely solely on container for centering */}
         <div className="container mx-auto px-4 flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row"> {/* Ensure container has mx-auto and padding */}
           <p className="text-sm text-muted-foreground text-center md:text-left"> {/* Center text on small screens */}
             © {new Date().getFullYear()} HelpDesk HQ. All rights reserved.
