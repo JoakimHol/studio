@@ -1,0 +1,51 @@
+# docker-compose.yml
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9002:9002" # Map host port 9002 to container port 9002
+    environment:
+      # Database connection details (use 'db' as the host name)
+      - DB_HOST=db
+      - DB_USER=${DB_USER} # Get from .env file or host environment
+      - DB_PASSWORD=${DB_PASSWORD} # Get from .env file or host environment
+      - DB_NAME=${DB_NAME} # Get from .env file or host environment
+      - DB_PORT=3306 # Standard MariaDB port inside the container network
+      # Google GenAI API Key (optional)
+      - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY} # Get from .env file or host environment
+      # Next.js specific environment variables
+      - PORT=9002
+      - NODE_ENV=production
+      # Add any other necessary environment variables here
+      # Example for NextAuth: NEXTAUTH_URL=http://localhost:9002, NEXTAUTH_SECRET=...
+    depends_on:
+      - db # Wait for the database service to be ready
+    restart: unless-stopped
+    # Optional: Mount local code for development (uncomment if needed)
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules # Prevent local node_modules from overriding container's
+    #   - /app/.next
+
+  db:
+    image: mariadb:10.6 # Use a specific stable version is recommended
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD} # Root password for the DB
+      - MARIADB_DATABASE=${DB_NAME} # Database name to create
+      - MARIADB_USER=${DB_USER} # User to create
+      - MARIADB_PASSWORD=${DB_PASSWORD} # Password for the user
+    volumes:
+      # Mount the schema.sql file to initialize the database on first run
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      # Mount a named volume for persistent data storage
+      - db_data:/var/lib/mysql
+    # Optional: Expose port 3307 on host mapped to 3306 in container for external access/debugging
+    # ports:
+    #   - "3307:3306"
+
+# Define the named volume for database data persistence
+volumes:
+  db_data:

@@ -52,6 +52,11 @@ export async function findUserByEmail(email: string): Promise<User | null> {
  */
 export async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
   try {
+    // Ensure both arguments are strings before comparing
+    if (typeof plainPassword !== 'string' || typeof hashedPassword !== 'string') {
+      console.warn('Invalid input types for password verification.');
+      return false;
+    }
     return await bcrypt.compare(plainPassword, hashedPassword);
   } catch (error) {
     console.error('Error verifying password:', error);
@@ -62,10 +67,10 @@ export async function verifyPassword(plainPassword: string, hashedPassword: stri
 
 /**
  * Creates a new user record in the database.
- * IMPORTANT: Ensure plainPassword is securely hashed before calling this in a real scenario.
- * This function assumes password hashing happens *before* calling it.
+ * IMPORTANT: This function expects the `password_hash` field in userData to already contain
+ * the securely hashed password. Hashing should occur *before* calling this service function.
  *
- * @param userData - The data for the new user, including the hashed password.
+ * @param userData - The data for the new user, including the pre-hashed password.
  * @returns The ID of the newly inserted user.
  * @throws Throws an error if the database insertion fails or email exists.
  */
@@ -73,9 +78,12 @@ export async function createUser(userData: Omit<User, 'id' | 'created_at' | 'upd
   let connection;
   try {
     connection = await pool.getConnection();
-    // Hash the password before storing (Example using bcrypt)
-    const saltRounds = 10; // Adjust cost factor as needed
-    const hashedPassword = await bcrypt.hash(userData.password_hash, saltRounds); // HASH THE PASSWORD HERE
+
+    // Check if email already exists BEFORE attempting insert
+    const existingUser = await findUserByEmail(userData.email);
+    if (existingUser) {
+        throw new Error('Email address already exists.');
+    }
 
     const sql = `
       INSERT INTO users (name, email, password_hash, role)
@@ -84,7 +92,7 @@ export async function createUser(userData: Omit<User, 'id' | 'created_at' | 'upd
     const values = [
       userData.name,
       userData.email,
-      hashedPassword, // Store the hashed password
+      userData.password_hash, // Store the pre-hashed password
       userData.role,
     ];
 
@@ -98,7 +106,11 @@ export async function createUser(userData: Omit<User, 'id' | 'created_at' | 'upd
     }
   } catch (error: any) {
     console.error('Error creating user in database:', error);
-     // Check for duplicate email error (MySQL error code 1062)
+    // Re-throw specific "Email exists" error or a general DB error
+    if (error.message === 'Email address already exists.') {
+        throw error;
+    }
+    // Check for duplicate entry error code just in case the initial check missed due to race condition (less likely with check above)
     if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
         throw new Error('Email address already exists.');
     }
@@ -111,9 +123,12 @@ export async function createUser(userData: Omit<User, 'id' | 'created_at' | 'upd
 }
 
 
-// Example function to hash a password (Use this when creating users or updating passwords)
+// Utility function to hash a password (Use this in the Action file before calling createUser)
 export async function hashPassword(plainPassword: string): Promise<string> {
     const saltRounds = 10; // Or read from config
+    if (typeof plainPassword !== 'string') {
+        throw new Error('Password must be a string.');
+    }
     return bcrypt.hash(plainPassword, saltRounds);
 }
 
