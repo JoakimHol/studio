@@ -48,7 +48,7 @@ This is the recommended method for easy setup and consistent environments.
 1.  **Install Docker and Docker Compose:** Ensure you have Docker and Docker Compose installed on your system.
 
 2.  **Set up Environment Variables:**
-    *   **CRITICAL:** Copy the `.env.example` file to a new file named `.env`.
+    *   **CRITICAL: You MUST create a `.env` file before running `docker-compose up`.** Copy the `.env.example` file to a new file named `.env` in the project root.
     *   **CRITICAL:** Fill in the **required** environment variables in the `.env` file:
         *   `DB_USER`: Your desired database username (e.g., `helpdesk_user`).
         *   `DB_PASSWORD`: Your desired database password.
@@ -77,6 +77,12 @@ This is the recommended method for easy setup and consistent environments.
     docker-compose down
     ```
     *   Use `docker-compose down -v` to also remove the database data volume (useful for a clean restart).
+
+## Troubleshooting
+
+*   **Error: `Database environment variables (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME) must be set.`**:
+    *   **If using Docker Compose:** This almost certainly means you haven't created the `.env` file or haven't filled in the required `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and `MARIADB_ROOT_PASSWORD` variables inside it. Stop Docker Compose (`docker-compose down`), ensure your `.env` file exists in the project root and contains the correct values, then try `docker-compose up --build -d` again.
+    *   **If running manually (not Docker):** Ensure the environment variables `DB_HOST`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` are correctly set in your `.env` file and that the file is being loaded by your `npm run dev` process.
 
 ## Key Features
 
@@ -145,4 +151,3 @@ The `schema.sql` script creates a default administrator account:
 *   Develop AI features (e.g., ticket summarization, suggested replies) using Genkit.
 *   Improve error handling and user feedback.
 *   Add user editing and deletion capabilities to the employee user management page.
-```
