@@ -170,4 +170,3 @@ export async function getAllUsers(): Promise<User[]> {
 // export async function updateUserRole(id: number, role: User['role']): Promise<boolean> { ... }
 // export async function deleteUser(id: number): Promise<boolean> { ... }
 // export async function updateUser(id: number, data: Partial<Omit<User, 'id' | 'created_at' | 'updated_at' | 'password_hash'>>): Promise<boolean> { ... }
-```
