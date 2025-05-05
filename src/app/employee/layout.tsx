@@ -34,8 +34,15 @@ export default async function EmployeeLayout({
   children: React.ReactNode;
 }) {
   // Fetch data needed for layout (like open ticket count) - replace with actual DB call
-  // const tickets = await getAllTickets(); // Example: Replace with actual fetch
-  const openTicketCount = 5; // Placeholder - replace with actual count from DB
+  let openTicketCount = 0;
+  try {
+    const tickets = await getAllTickets();
+    openTicketCount = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+  } catch (error) {
+      console.error("Failed to fetch ticket count for layout:", error);
+      // Handle error appropriately, maybe show 0 or an error indicator
+  }
+
 
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
@@ -149,4 +156,3 @@ export default async function EmployeeLayout({
     </div>
   );
 }
-```
