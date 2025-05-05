@@ -1,43 +1,41 @@
-# Dockerfile
-
-# ---- Base Node ----
+# Use the official lightweight Node.js 20 image.
+# https://hub.docker.com/_/node
 FROM node:20-alpine AS base
+
+# Set the working directory in the container to /app
 WORKDIR /app
-RUN npm install -g pnpm
 
-# ---- Dependencies ----
-FROM base AS deps
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Install node modules using npm (instead of pnpm)
+# First, only copy package.json and package-lock.json (if available)
+COPY package*.json ./
 
-# ---- Builder ----
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# Use npm ci for potentially faster and more reliable installs in CI/CD
+RUN npm ci
+
+# Copy the rest of the application code
 COPY . .
 
-# Set build-time environment variables if needed (optional)
-# ARG NEXT_PUBLIC_VARIABLE
-# ENV NEXT_PUBLIC_VARIABLE=${NEXT_PUBLIC_VARIABLE}
+# Build the Next.js application
+RUN npm run build
 
-# Build the application
-RUN pnpm build
 
-# ---- Runner ----
-FROM base AS runner
+# Production image, copy all the files and run next
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Set runtime environment variables
-# These should be passed via docker run -e or docker-compose environment section
 ENV NODE_ENV=production
-# Set default port if not provided by environment
-ENV PORT=9002
+# Uncomment the following line in case you want to disable telemetry during runtime.
+# ENV NEXT_TELEMETRY_DISABLED 1
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+# Copy built assets from the 'base' stage
+COPY --from=base /app/public ./public
+COPY --from=base /app/.next/standalone ./
+COPY --from=base /app/.next/static ./.next/static
 
-# Expose the port the app runs on
+# Expose the port the app runs on (make sure it matches docker-compose.yml and dev script if needed)
 EXPOSE 9002
 
-# Run the application
+# Define the command to run the app
+# Use the PORT environment variable provided by docker-compose.yml or default to 9002
+ENV PORT 9002
 CMD ["node", "server.js"]
