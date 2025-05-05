@@ -1,206 +1,154 @@
-'use client';
+// src/app/page.tsx
 
-import * as React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
-import { ArrowLeft, LifeBuoy, LogIn } from 'lucide-react';
-import { loginAction, type LoginFormState } from './actions';
-import { useFormState } from 'react-dom';
-import { useRouter } from 'next/navigation'; // Import useRouter for redirection
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CircleCheckBig, LifeBuoy, MessageSquare, Users } from 'lucide-react';
+import Image from 'next/image';
 
-// Define the form schema using Zod
-const loginFormSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-});
-
-type LoginFormValues = z.infer<typeof loginFormSchema>;
-
-// Default values for the form
-const defaultValues: Partial<LoginFormValues> = {
-  email: '',
-  password: '',
-};
-
-const initialState: LoginFormState = {
-    message: '',
-    success: false,
-    role: undefined,
-    errors: {},
-}
-
-export default function LoginPage() {
-  const { toast } = useToast();
-  const router = useRouter(); // Initialize router
-  const [formState, formAction] = useFormState(loginAction, initialState);
-  const formRef = React.useRef<HTMLFormElement>(null);
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
-    defaultValues,
-    mode: 'onChange', // Validate on change
-  });
-
- React.useEffect(() => {
-    if (formState?.success) {
-      toast({
-        title: 'Login Successful!',
-        description: formState.message,
-        variant: 'default',
-      });
-      form.reset(); // Reset form on successful submission
-
-      // Redirect based on role
-      if (formState.role === 'admin') {
-        router.push('/employee');
-      } else if (formState.role === 'customer') {
-        // Redirect to a customer dashboard (replace '/dashboard' if needed)
-        router.push('/dashboard'); // Placeholder for customer dashboard
-      }
-      // Optionally handle other roles or scenarios
-    } else if (formState && formState.message && !formState.success) {
-      // Display server-side validation errors or general submission errors
-       toast({
-        title: 'Login Error',
-        description: formState.message,
-        variant: 'destructive', // Use destructive style for errors
-      });
-       // Optionally set form errors from server state if needed for specific fields
-       if (formState.errors) {
-            Object.entries(formState.errors).forEach(([key, value]) => {
-                if (value && value.length > 0) {
-                   form.setError(key as keyof LoginFormValues, {
-                       type: 'server',
-                       message: value[0], // Show the first error message
-                   });
-                }
-            });
-       }
-    }
-  }, [formState, toast, form, router]);
-
-
+export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-secondary">
-       {/* Simple Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-             <LifeBuoy className="h-6 w-6 text-primary" />
-             <span className="font-bold">HelpDesk HQ</span>
-          </Link>
-           <Button variant="ghost" size="sm" asChild>
-             <Link href="/">
-               <ArrowLeft className="mr-2 h-4 w-4" />
-               Back to Home
-             </Link>
-           </Button>
-        </div>
+    <div className="flex flex-col min-h-screen">
+      {/* Header - Fixed position for buttons */}
+      <header className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6">
+          {/* Buttons positioned top-right */}
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center space-x-2">
+            <Button asChild variant="outline" className="bg-background/80 hover:bg-background backdrop-blur-sm">
+              {/* Changed link to /login */}
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild className="bg-primary/90 hover:bg-primary backdrop-blur-sm">
+              <Link href="/submit-ticket">Submit Ticket</Link>
+            </Button>
+          </div>
       </header>
 
-       <main className="flex-1 flex items-center justify-center py-12 px-4">
-         <Card className="w-full max-w-md shadow-lg">
-           <CardHeader className="text-center">
-             <CardTitle className="text-2xl">Login</CardTitle>
-             <CardDescription>Enter your credentials to access your account.</CardDescription>
-           </CardHeader>
-           <CardContent>
-             <Form {...form}>
-               <form
-                  ref={formRef}
-                  action={formAction} // Use the server action
-                  className="space-y-6"
-               >
-                 <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="you@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="relative py-32 md:py-48 min-h-[60vh] flex items-center justify-center text-center overflow-hidden">
+          <Image
+            src="https://picsum.photos/1600/900"
+            alt="Helpdesk background"
+            layout="fill"
+            objectFit="cover"
+            className="absolute inset-0 -z-10"
+            data-ai-hint="customer support team office abstract background"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/30 -z-10" aria-hidden="true" />
 
-                 <SubmitButton />
+          <div className="container relative z-10 text-white px-4"> {/* Added px-4 for padding on small screens */}
+            {/* Centered Logo Box */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-[-16rem] md:mt-[-18rem]"> {/* Adjust vertical offset as needed */}
+              <div className="inline-block bg-background/80 p-6 rounded-lg shadow-xl mx-auto backdrop-blur-sm">
+                <Link href="/" className="flex items-center space-x-3">
+                  <LifeBuoy className="h-10 w-10 text-primary" />
+                  <span className="text-2xl font-bold text-foreground">HelpDesk HQ</span>
+                </Link>
+              </div>
+            </div>
 
-                {/* Optional: Add links for forgotten password or sign up */}
-                <div className="text-center text-sm text-muted-foreground pt-4">
-                  Don't have an account?{" "}
-                  <Link href="/signup" className="underline text-primary hover:text-primary/80">
-                    Sign up
-                  </Link>
-                  {/* Add forgotten password link if needed */}
-                  {/* <span className="mx-2">|</span>
-                  <Link href="/forgot-password">Forgot password?</Link> */}
-                </div>
-               </form>
-             </Form>
-           </CardContent>
-         </Card>
-       </main>
 
-       {/* Footer */}
-      <footer className="py-6 md:px-8 md:py-8 border-t bg-background">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-          <p className="text-sm text-muted-foreground text-center md:text-left">
+            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mt-24 md:mt-16"> {/* Adjusted margin top */}
+              Need Help? We've Got You Covered.
+            </h1>
+            <p className="mt-6 text-lg text-gray-200 max-w-2xl mx-auto">
+              Welcome to HelpDesk HQ, your central hub for reporting issues and getting support quickly and efficiently.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4"> {/* Adjusted for better stacking on small screens */}
+              <Button size="lg" asChild>
+                <Link href="/submit-ticket">Submit a Ticket Now</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20 backdrop-blur-sm" asChild>
+                <Link href="#features">Learn More</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="py-16 md:py-24 bg-background">
+          <div className="container mx-auto px-4"> {/* Ensure container has mx-auto and padding */}
+            <h2 className="text-3xl font-bold text-center mb-12">
+              Why Choose HelpDesk HQ?
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"> {/* Centered the grid content */}
+              <Card className="text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit mb-4">
+                    <MessageSquare className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle>Easy Ticket Submission</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Quickly submit your issues through our simple and intuitive form. Attach files if needed.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                   <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit mb-4">
+                    <CircleCheckBig className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle>Track Your Progress</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Stay updated on the status of your tickets from submission to resolution. (Feature coming soon!)
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit mb-4">
+                    <Users className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle>Efficient Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Our employee dashboard provides powerful tools to manage and resolve tickets effectively.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Call to Action Section */}
+        <section className="py-16 md:py-24 bg-secondary">
+          <div className="container mx-auto px-4 text-center"> {/* Ensure container has mx-auto and padding */}
+            <h2 className="text-3xl font-bold mb-4">
+              Ready to Get Started?
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+              Don't let technical issues slow you down. Submit a ticket today and let our team help you out.
+            </p>
+            <Button size="lg" asChild>
+              <Link href="/submit-ticket">Submit Your First Ticket</Link>
+            </Button>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="py-6 md:py-8 border-t bg-background">
+        <div className="container mx-auto px-4 flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row"> {/* Ensure container has mx-auto and padding */}
+          <p className="text-sm text-muted-foreground text-center md:text-left"> {/* Center text on small screens */}
             © {new Date().getFullYear()} HelpDesk HQ. All rights reserved.
           </p>
+           <div className="flex items-center gap-4">
+            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+              Privacy Policy
+            </Link>
+            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
   );
 }
-
-// Extracted SubmitButton to use useFormStatus
-function SubmitButton() {
-    const { pending } = useFormState(); // Get pending state directly
-
-    return (
-        <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? (
-                <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Logging in...
-                </>
-            ) : (
-                 <>
-                    <LogIn className="mr-2 h-4 w-4" /> Login
-                 </>
-            )}
-        </Button>
-    );
-}
+```

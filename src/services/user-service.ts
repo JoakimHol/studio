@@ -123,16 +123,51 @@ export async function createUser(userData: Omit<User, 'id' | 'created_at' | 'upd
 }
 
 
-// Utility function to hash a password (Use this in the Action file before calling createUser)
+/**
+ * Utility function to hash a password (Use this in the Action file before calling createUser)
+ * @param plainPassword - The plain text password to hash.
+ * @returns The hashed password.
+ * @throws Throws an error if hashing fails.
+ */
 export async function hashPassword(plainPassword: string): Promise<string> {
     const saltRounds = 10; // Or read from config
     if (typeof plainPassword !== 'string') {
         throw new Error('Password must be a string.');
     }
-    return bcrypt.hash(plainPassword, saltRounds);
+    try {
+        return await bcrypt.hash(plainPassword, saltRounds);
+    } catch (error) {
+        console.error('Error hashing password:', error);
+        throw new Error('Failed to hash password.');
+    }
+}
+
+
+/**
+ * Retrieves all users from the database.
+ * @returns An array of all user objects.
+ * @throws Throws an error if there's a database issue.
+ */
+export async function getAllUsers(): Promise<User[]> {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const sql = 'SELECT id, name, email, role, created_at, updated_at FROM users ORDER BY created_at DESC'; // Exclude password_hash
+    const [rows] = await connection.execute<RowDataPacket[]>(sql);
+    return rows as User[]; // Cast might be slightly inaccurate without password_hash, but okay for display
+  } catch (error) {
+    console.error('Error fetching all users from database:', error);
+    throw new Error('Database error: Failed to fetch users.');
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
 }
 
 // Future potential functions:
 // export async function getUserById(id: number): Promise<User | null> { ... }
 // export async function updateUserRole(id: number, role: User['role']): Promise<boolean> { ... }
 // export async function deleteUser(id: number): Promise<boolean> { ... }
+// export async function updateUser(id: number, data: Partial<Omit<User, 'id' | 'created_at' | 'updated_at' | 'password_hash'>>): Promise<boolean> { ... }
+```

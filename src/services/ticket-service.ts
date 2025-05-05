@@ -6,7 +6,8 @@
 import { pool } from '@/lib/db';
 import type { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 
-export interface TicketData {
+// Interface for data received when creating a ticket
+export interface CreateTicketData {
   name: string;
   email: string;
   category: 'technical' | 'billing' | 'general' | 'bug';
@@ -17,6 +18,23 @@ export interface TicketData {
   // filePath?: string; // Optional file path if handling uploads
 }
 
+// Interface representing a full ticket record from the database
+export interface Ticket {
+    id: number;
+    customer_name: string; // Use customer_name as it's in the DB
+    email: string;
+    category: 'technical' | 'billing' | 'general' | 'bug';
+    urgency: 'low' | 'medium' | 'high' | 'critical';
+    subject: string;
+    description: string;
+    status: 'Open' | 'In Progress' | 'Closed';
+    user_id: number | null;
+    created_at: Date;
+    updated_at: Date;
+    // file_path?: string | null; // Uncomment if used
+}
+
+
 /**
  * Creates a new ticket record in the database.
  * Associates the ticket with a user if user_id is provided.
@@ -24,16 +42,17 @@ export interface TicketData {
  * @returns The ID of the newly inserted ticket.
  * @throws Throws an error if the database insertion fails.
  */
-export async function createTicket(ticketData: TicketData): Promise<number> {
+export async function createTicket(ticketData: CreateTicketData): Promise<number> {
   let connection;
   try {
     connection = await pool.getConnection();
+    // Note: SQL uses `customer_name`, not `name` from the input interface
     const sql = `
-      INSERT INTO tickets (name, email, category, urgency, subject, description, status, user_id)
+      INSERT INTO tickets (customer_name, email, category, urgency, subject, description, status, user_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const values = [
-      ticketData.name,
+      ticketData.name, // Map input 'name' to 'customer_name' column
       ticketData.email,
       ticketData.category,
       ticketData.urgency,
@@ -63,8 +82,31 @@ export async function createTicket(ticketData: TicketData): Promise<number> {
   }
 }
 
+/**
+ * Retrieves all tickets from the database.
+ * @returns An array of all ticket objects.
+ * @throws Throws an error if there's a database issue.
+ */
+export async function getAllTickets(): Promise<Ticket[]> {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const sql = 'SELECT * FROM tickets ORDER BY created_at DESC'; // Order by newest first
+    const [rows] = await connection.execute<RowDataPacket[]>(sql);
+    return rows as Ticket[];
+  } catch (error) {
+    console.error('Error fetching all tickets from database:', error);
+    throw new Error('Database error: Failed to fetch tickets.');
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+
 // Future potential functions:
-// export async function getTicketById(id: number): Promise<TicketData | null> { ... }
+// export async function getTicketById(id: number): Promise<Ticket | null> { ... }
 // export async function updateTicketStatus(id: number, status: string): Promise<boolean> { ... }
-// export async function getAllTickets(): Promise<TicketData[]> { ... }
-// export async function getTicketsByUserId(userId: number): Promise<TicketData[]> { ... }
+// export async function getTicketsByUserId(userId: number): Promise<Ticket[]> { ... }
+```

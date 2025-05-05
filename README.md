@@ -14,15 +14,15 @@ This is a Next.js starter project for a HelpDesk application, built within Fireb
     ```
 
 2.  **Set up Environment Variables:**
-    *   Copy the `.env.example` file to a new file named `.env`.
-    *   Fill in the required environment variables:
-        *   `GOOGLE_GENAI_API_KEY`: (Optional) Your API key if using Google AI features.
+    *   **CRITICAL:** Copy the `.env.example` file to a new file named `.env`.
+    *   **CRITICAL:** Fill in the required environment variables in the `.env` file:
         *   `DB_HOST`: Hostname of your MariaDB/MySQL server (e.g., `localhost`).
         *   `DB_USER`: Your database username (e.g., `helpdesk_user`).
         *   `DB_PASSWORD`: Your database password.
         *   `DB_NAME`: The name of the database to use (e.g., `helpdesk_db`).
         *   `DB_PORT`: (Optional) The port your database server is running on (defaults to 3306).
-        *   `MARIADB_ROOT_PASSWORD`: Required only if using Docker Compose setup (see below).
+        *   `GOOGLE_GENAI_API_KEY`: (Optional) Your API key if using Google AI features.
+        *   `MARIADB_ROOT_PASSWORD`: **Only needed if using Docker Compose (see below). Not used by the application directly.**
 
 3.  **Set up Database:**
     *   Ensure you have a MariaDB or MySQL server running.
@@ -48,14 +48,14 @@ This is the recommended method for easy setup and consistent environments.
 1.  **Install Docker and Docker Compose:** Ensure you have Docker and Docker Compose installed on your system.
 
 2.  **Set up Environment Variables:**
-    *   Copy the `.env.example` file to a new file named `.env`.
-    *   Fill in the **required** environment variables:
+    *   **CRITICAL:** Copy the `.env.example` file to a new file named `.env`.
+    *   **CRITICAL:** Fill in the **required** environment variables in the `.env` file:
         *   `DB_USER`: Your desired database username (e.g., `helpdesk_user`).
         *   `DB_PASSWORD`: Your desired database password.
         *   `DB_NAME`: Your desired database name (e.g., `helpdesk_db`).
-        *   `MARIADB_ROOT_PASSWORD`: A **strong** password for the MariaDB root user (used only by the container setup).
+        *   `MARIADB_ROOT_PASSWORD`: A **strong** password for the MariaDB root user (used **only** by the container setup process).
         *   `GOOGLE_GENAI_API_KEY`: (Optional) Your Google AI API key if needed.
-    *   **Important:** `DB_HOST` should **not** be set to `localhost` in the `.env` file for Docker Compose, as the container will connect to the `db` service name. The `docker-compose.yml` file handles setting `DB_HOST=db`.
+    *   **Important:** `DB_HOST` should **not** be set to `localhost` in the `.env` file for Docker Compose, as the application container will connect to the `db` service name. The `docker-compose.yml` file handles setting `DB_HOST=db` for the application container. **The `db.ts` file will throw an error if `DB_USER`, `DB_PASSWORD`, or `DB_NAME` are missing from the environment when the application starts.**
 
 3.  **Build and Run:**
     ```bash
@@ -65,10 +65,10 @@ This is the recommended method for easy setup and consistent environments.
     *   `-d`: Runs the containers in detached mode (in the background).
     *   Docker Compose will:
         *   Build the Next.js app image.
-        *   Start a MariaDB container.
-        *   Create the database (`DB_NAME`) and user (`DB_USER`) using the provided credentials.
+        *   Start a MariaDB container using the `MARIADB_ROOT_PASSWORD` from your `.env`.
+        *   Create the database (`DB_NAME`) and user (`DB_USER`) using the credentials from your `.env`.
         *   Run the `schema.sql` script to set up tables and the default admin user.
-        *   Start the Next.js application container, connecting it to the database container.
+        *   Start the Next.js application container, connecting it to the database container using the `DB_USER`, `DB_PASSWORD`, `DB_NAME` from your `.env` and setting `DB_HOST=db`.
 
 4.  **Access the Application:** The application will be available at [http://localhost:9002](http://localhost:9002).
 
@@ -76,19 +76,20 @@ This is the recommended method for easy setup and consistent environments.
     ```bash
     docker-compose down
     ```
-    *   Use `docker-compose down -v` to also remove the database data volume.
+    *   Use `docker-compose down -v` to also remove the database data volume (useful for a clean restart).
 
 ## Key Features
 
 *   **Ticket Submission:** Users can submit support tickets via a dedicated form (`/submit-ticket`).
 *   **Login:** Combined login page for customers and administrators (`/login`).
+*   **Signup:** Customer account creation (`/signup`).
 *   **Admin Account:** Default admin user (`admin@example.com` / `password`) created by `schema.sql`. **CHANGE THIS PASSWORD!**
-*   **Employee Dashboard:** A dashboard for support staff (admins) to view and manage tickets (`/employee`). (Currently uses mock data).
+*   **Employee Dashboard:** A dashboard for support staff (admins) to view and manage tickets (`/employee`). Includes user management (`/employee/users`).
 *   **Customer Dashboard:** A basic dashboard for logged-in customers (`/dashboard`).
-*   **Database Integration:** Submitted tickets and user accounts are stored in a MariaDB/MySQL database.
+*   **Database Integration:** Tickets and user accounts are stored in a MariaDB/MySQL database.
 *   **Docker Support:** Includes `Dockerfile` and `docker-compose.yml` for easy containerized deployment.
 *   **Styling:** Uses Tailwind CSS and ShadCN UI components for a modern look and feel.
-*   **Server Actions:** Utilizes Next.js Server Actions for form handling (login, signup, ticket submission).
+*   **Server Actions:** Utilizes Next.js Server Actions for form handling (login, signup, ticket submission, user creation).
 
 ## Default Admin User
 
@@ -98,15 +99,17 @@ The `schema.sql` script creates a default administrator account:
 *   **Password:** `password`
 
 **It is critical that you change this password immediately after setting up the application.** You can do this by:
-1.  Hashing a new password using a bcrypt tool/library.
-2.  Connecting to your database and updating the `password_hash` for the `admin@example.com` user in the `users` table.
+1.  Hashing a new password using a bcrypt tool/library (or create a new admin via the employee user management page and delete the default one).
+2.  Connecting to your database (e.g., `docker-compose exec db mysql -u root -p`) and updating the `password_hash` for the `admin@example.com` user in the `users` table: `UPDATE users SET password_hash = 'YOUR_NEW_BCRYPT_HASH' WHERE email = 'admin@example.com';`
 
 ## Project Structure
 
 *   `src/app/`: Contains the application pages and layouts (using Next.js App Router).
     *   `src/app/page.tsx`: Landing page.
     *   `src/app/submit-ticket/`: Ticket submission page and related server action (`actions.ts`).
-    *   `src/app/employee/`: Employee dashboard page.
+    *   `src/app/employee/`: Employee dashboard layout and main page.
+        *   `src/app/employee/page.tsx`: Main employee dashboard content (ticket view).
+        *   `src/app/employee/users/`: User management page and actions.
     *   `src/app/dashboard/`: Customer dashboard page.
     *   `src/app/login/`: Login page and server action (`actions.ts`).
     *   `src/app/signup/`: Signup page and server action (`actions.ts`).
@@ -119,7 +122,7 @@ The `schema.sql` script creates a default administrator account:
     *   `src/lib/utils.ts`: General utility functions (like `cn`).
 *   `src/services/`: Business logic for interacting with data sources.
     *   `src/services/ticket-service.ts`: Functions for ticket database operations.
-    *   `src/services/user-service.ts`: Functions for user database operations (creation, lookup, password verification).
+    *   `src/services/user-service.ts`: Functions for user database operations (creation, lookup, password verification, fetching all users).
 *   `src/hooks/`: Custom React hooks.
     *   `src/hooks/use-toast.ts`: Hook for displaying toast notifications.
 *   `src/ai/`: (Optional) Code related to Generative AI features using Genkit.
@@ -128,15 +131,18 @@ The `schema.sql` script creates a default administrator account:
 *   `Dockerfile`: Defines the Next.js application container image.
 *   `docker-compose.yml`: Defines the application and database services for Docker Compose.
 *   `.env.example`: Example environment variables file.
+*   `.env`: **Your local environment configuration file (ignored by Git). CRITICAL for running the app.**
 *   `.dockerignore`: Specifies files/directories to ignore when building the Docker image.
 
 ## Further Development
 
 *   Implement file uploads for ticket attachments.
 *   Fetch real ticket data from the database in the employee dashboard.
-*   Add proper session management/authentication beyond simple redirection.
+*   Add proper session management/authentication/authorization (e.g., using NextAuth.js or similar) to protect routes and actions.
 *   Implement functionality to update ticket status, assign tickets, add comments, etc. in the employee dashboard.
 *   Display user's tickets in the customer dashboard.
 *   Add password reset functionality.
 *   Develop AI features (e.g., ticket summarization, suggested replies) using Genkit.
 *   Improve error handling and user feedback.
+*   Add user editing and deletion capabilities to the employee user management page.
+```
